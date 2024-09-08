@@ -1,0 +1,13 @@
+things to remember after starting an app:
+- add/update relevant settings
+- add urls.py
+- include the app urls in project urls
+- register the app in admin.py
+- add models
+- make migrations
+- add serializers
+- create views
+
+migration
+- "python manage.py makemigrations" will create migration files based on the changes in models
+- "python manage.py migrate" will run the migration from migration files
