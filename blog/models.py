@@ -15,4 +15,4 @@ class Blog(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
 
     def __str__(self):
-        return self.id
+        return str(self.id)

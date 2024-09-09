@@ -36,6 +36,18 @@ class SignupSerializer(serializers.ModelSerializer):
         return user
 
 
+class LoginSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+    class Meta:
+        model = User
+        fields = ('username', 'password')
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(required=True)
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -48,3 +60,12 @@ class PostAuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username')
+
+
+class UserSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(max_length=45)
+    last_name = serializers.CharField(max_length=45)
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'date_joined')
+        read_only_fields = ('id', 'date_joined', 'username', 'email')

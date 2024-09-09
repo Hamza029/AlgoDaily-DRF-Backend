@@ -6,6 +6,6 @@ from django.urls import path
 
 
 urlpatterns = [
-    path("", views.BlogListAPIView.as_view(), name="post_list_create"),
-    # path("<int:post_id>/", views.PostRetrieveUpdateDeleteView.as_view(), name="post_detail"),
+    path("", views.BlogListAPIView.as_view(), name="blog_list_create"),
+    path("<uuid:blog_id>/", views.BlogRetrieveUpdateDestroyView.as_view(), name="post_detail"),
 ]
