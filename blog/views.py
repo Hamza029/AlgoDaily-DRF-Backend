@@ -3,7 +3,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.decorators import APIView
 from .models import Blog
 from .serializers import BlogSerializer
@@ -14,12 +14,15 @@ from .permissions import AuthorOrReadOnly
 
 
 class BlogPagination(PageNumberPagination):
-    page_size = 2
+    page_size = 3
+    page_size_query_param = 'page_size'
+    max_page_size = 20
 
 
-class BlogListAPIView(APIView):
+class BlogListAPIView(generics.GenericAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     serializer_class = BlogSerializer
+    pagination_class = BlogPagination
 
     def get(self, request: Request, *args, **kwargs) -> Response:
         queryset = Blog.objects.order_by('-created_at')
@@ -65,7 +68,7 @@ class BlogListAPIView(APIView):
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class BlogRetrieveUpdateDestroyView(APIView):
+class BlogRetrieveUpdateDestroyView(generics.GenericAPIView):
     permission_classes = (AuthorOrReadOnly,)
     serializer_class = BlogSerializer
 
