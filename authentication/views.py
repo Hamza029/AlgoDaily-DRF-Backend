@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate
 from django.core.serializers import serialize
 from django.shortcuts import render
+from drf_yasg import openapi
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import InvalidToken
@@ -9,14 +10,17 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 from .permissions import IsSameUserOrReadOnly
 from .serializers import SignupSerializer, UserSerializer, LoginSerializer, LogoutSerializer
-from rest_framework import generics, status, pagination
+from rest_framework import generics, status, pagination, mixins
 from rest_framework.response import Response
 from rest_framework.request import Request
 from .tokens import create_jwt_pair
+from drf_yasg.utils import swagger_auto_schema
 
 
 class UsersPagination(pagination.PageNumberPagination):
-    page_size = 2
+    page_size = 3
+    page_size_query_param = 'page_size'
+    max_page_size = 20
 
 
 class SignupView(generics.GenericAPIView):
@@ -39,7 +43,7 @@ class SignupView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(APIView):
+class LoginView(generics.GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = LoginSerializer
 
@@ -81,7 +85,7 @@ class LogoutView(generics.GenericAPIView):
         return Response(data=response, status=status.HTTP_200_OK)
 
 
-class UserListView(generics.ListAPIView):
+class UserListView(mixins.ListModelMixin ,generics.GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = UserSerializer
     queryset = User.objects.order_by('-date_joined')
@@ -94,7 +98,16 @@ class UserListView(generics.ListAPIView):
             queryset = queryset.filter(username__icontains=search)
         return queryset
 
-    def list(self, request, *args, **kwargs):
+    @swagger_auto_schema(
+        operation_summary="Get users list",
+        operation_description='This returns a list of users',
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, description="Search by username", type=openapi.TYPE_STRING
+            ),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
         generic_response = super().list(request, *args, **kwargs)
         response = {
             "message": "Successfully listed users.",
@@ -103,12 +116,16 @@ class UserListView(generics.ListAPIView):
         return Response(data=response, status=status.HTTP_200_OK)
 
 
-class UserRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+class UserRetrieveUpdateView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
     permission_classes = (IsSameUserOrReadOnly, )
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
-    def retrieve(self, request, *args, **kwargs):
+    @swagger_auto_schema(
+        operation_summary="Retrieve a user",
+        operation_description='This will retrieve a user from given id parameter',
+    )
+    def get(self, request, *args, **kwargs):
         generic_response = super().retrieve(request, *args, **kwargs)
         response = {
             "message": "Successfully retrieved user.",
@@ -116,7 +133,7 @@ class UserRetrieveUpdateView(generics.RetrieveUpdateAPIView):
         }
         return Response(data=response, status=status.HTTP_200_OK)
 
-    def update(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         generic_response = super().update(request, *args, **kwargs)
         response = {
             "message": "Successfully updated user.",
