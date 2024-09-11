@@ -78,7 +78,8 @@ class LogoutView(generics.GenericAPIView):
         serializer = self.serializer_class(data=data)
         if not serializer.is_valid():
             raise InvalidToken(serializer.errors)
-        RefreshToken(serializer.data.token).blacklist()
+        refresh_token = serializer.data.get('refresh')
+        RefreshToken(refresh_token).blacklist()
         response = {
             "message": "Logged out successfully.",
         }
@@ -108,7 +109,7 @@ class UserListView(mixins.ListModelMixin ,generics.GenericAPIView):
         ]
     )
     def get(self, request, *args, **kwargs):
-        generic_response = super().list(request, *args, **kwargs)
+        generic_response = self.list(request, *args, **kwargs)
         response = {
             "message": "Successfully listed users.",
             "data": generic_response.data
@@ -126,7 +127,7 @@ class UserRetrieveUpdateView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
         operation_description='This will retrieve a user from given id parameter',
     )
     def get(self, request, *args, **kwargs):
-        generic_response = super().retrieve(request, *args, **kwargs)
+        generic_response = self.retrieve(request, *args, **kwargs)
         response = {
             "message": "Successfully retrieved user.",
             "data": generic_response.data
@@ -134,7 +135,7 @@ class UserRetrieveUpdateView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
         return Response(data=response, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):
-        generic_response = super().update(request, *args, **kwargs)
+        generic_response = self.update(request, *args, **kwargs)
         response = {
             "message": "Successfully updated user.",
             "data": generic_response.data
