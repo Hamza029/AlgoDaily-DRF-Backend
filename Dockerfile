@@ -5,6 +5,11 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN apt-get update && \
+    apt-get install -y \
+    default-libmysqlclient-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt /app/
 
 RUN pip install --upgrade pip
@@ -14,4 +19,6 @@ COPY . /app/
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "algodaily.wsgi:application"]
+#CMD ["gunicorn", "--bind", "0.0.0.0:8000", "algodaily.wsgi:application"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD python manage.py migrate && python manage.py runserver 0.0.0.0:8000

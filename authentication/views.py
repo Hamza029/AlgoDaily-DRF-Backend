@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from .tokens import create_jwt_pair
 from drf_yasg.utils import swagger_auto_schema
+from django.core.cache import cache
 
 
 class UsersPagination(pagination.PageNumberPagination):
@@ -122,8 +123,24 @@ class UserRetrieveUpdateView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
+    def get_object(self):
+        # print('inside get_obj')
+        cache_key = f'user_id_{self.kwargs.get('pk')}'
+        # print(cache_key)
+
+        if cache_key in cache:
+            print(f'found in cache: {cache.get(cache_key)}')
+            return cache.get(cache_key)
+
+        print('user not present in cache')
+        user = super().get_object()
+
+        cache.set(cache_key, user, timeout=60 * 60)
+
+        return user
+
     @swagger_auto_schema(
-        operation_summary="Retrieve a user",
+        operation_summary="Retrieve a USER",
         operation_description='This will retrieve a user from given id parameter',
     )
     def get(self, request, *args, **kwargs):
@@ -135,6 +152,11 @@ class UserRetrieveUpdateView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
         return Response(data=response, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):
+        cache_key = f'user_id_{self.kwargs.get('pk')}'
+
+        cache.delete(cache_key)
+        print('deleted cache')
+
         generic_response = self.update(request, *args, **kwargs)
         response = {
             "message": "Successfully updated user.",

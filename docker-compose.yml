@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0.37
@@ -11,11 +9,11 @@ services:
       - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
       - MYSQL_DATABASE=$DB_NAME
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./mysql_data:/var/lib/mysql
     ports:
-      - "3308:3306"
+      - "3307:3306"
     networks:
-      - alogdaily-drf-backend
+      - alogdaily-drf-network
 
   redis:
     container_name: algodaily-drf-redis
@@ -24,9 +22,9 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - ./redis_cache:/data
     networks:
-      - alogdaily-drf-backend
+      - alogdaily-drf-network
 
   web:
     build:
@@ -34,24 +32,33 @@ services:
       dockerfile: Dockerfile
     container_name: algodaily-drf-api
     restart: always
-    command: python manage.py migrate && python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      - SECRET_KEY=$SECRET_KEY
+      - DEBUG=$DEBUG
+      - ALLOWED_HOSTS=$ALLOWED_HOSTS
+      - JWT_SECRET=$JWT_SECRET
+      - DB_NAME=$DB_NAME
+      - DB_USER=$DB_USER
+      - DB_PASSWORD=$DB_PASSWORD
+      - DB_HOST=$DB_HOST
+      - DB_PORT=$DB_PORT
     depends_on:
       - db
       - redis
     networks:
-      - alogdaily-drf-backend
+      - alogdaily-drf-network
 
 volumes:
   mysql_data:
-  redis_data:
+  redis_cache:
 
 networks:
-  alogdaily-drf-backend:
-    name: alogdaily-drf-backend
+  alogdaily-drf-network:
+    name: alogdaily-drf-network
     driver: bridge

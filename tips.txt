@@ -11,3 +11,13 @@ things to remember after starting an app:
 migration
 - "python manage.py makemigrations" will create migration files based on the changes in models
 - "python manage.py migrate" will run the migration from migration files
+
+accessing redis cache from container
+- connect using redis-cli
+redis-cli -h redis -p 6379 or redis-cli
+- select index
+select 1
+- show all keys
+keys '*'
+- to run from outside of docker container
+docker exec -it redis_container_name redis-cli
