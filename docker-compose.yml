@@ -1,0 +1,64 @@
+services:
+  db:
+    image: mysql:8.0.37
+    container_name: algodaily-drf-db
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
+      - MYSQL_DATABASE=$DB_NAME
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - alogdaily-drf-network
+
+  redis:
+    container_name: algodaily-drf-redis
+    image: redis:7.4.0
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis_cache:/data
+    networks:
+      - alogdaily-drf-network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: algodaily-drf-api
+    restart: always
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - SECRET_KEY=$SECRET_KEY
+      - DEBUG=$DEBUG
+      - ALLOWED_HOSTS=$ALLOWED_HOSTS
+      - JWT_SECRET=$JWT_SECRET
+      - DB_NAME=$DB_NAME
+      - DB_USER=$DB_USER
+      - DB_PASSWORD=$DB_PASSWORD
+      - DB_HOST=$DB_HOST
+      - DB_PORT=$DB_PORT
+    depends_on:
+      - db
+      - redis
+    networks:
+      - alogdaily-drf-network
+
+volumes:
+  mysql_data:
+  redis_cache:
+
+networks:
+  alogdaily-drf-network:
+    name: alogdaily-drf-network
+    driver: bridge

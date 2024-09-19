@@ -1,6 +1,8 @@
 import uuid
 
 from django.db import models
+from pkg_resources import require
+
 from authentication.models import User
 
 
